@@ -1,0 +1,225 @@
+
+
+
+```{r} 
+project <- read.csv(file ="/diabetes.csv",header=TRUE) #update the path
+
+dim(project)
+str(project)
+head(project) 
+```
+
+
+
+```{r}
+library(ISLR)
+library(glmnet)
+exe <- na.omit(project)
+x <- model.matrix(Outcome ~ ., data=exe)[,-1]
+y <- exe$Outcome
+```
+
+(a) Split the data set into a 70% training set and a 30% validation set.
+```{r}
+set.seed(999)
+nrow(x)
+names(exe)
+dim(exe)#dimensions
+cor(exe[,-9])#The cor() function produces a matrix that contains all of the pairwise correlations among the predictors in a data set.
+contrasts(exe$Outcome)
+pairs(exe)
+```
+
+```{r}
+floor(0.7*768)
+```
+
+```{r}
+train <- sample(1:768,size=537)
+
+y_train <- y[train]
+y_test <- y[-train]
+x_train <- x[train,]
+x_test <- x[-train,]
+```
+
+
+(b) Fit an ordinary least squares model, using the full set of predictors, on the training set. Report the RMSE obtained on the validation set.
+```{r}
+lm_fit <- glm(Outcome ~., data=exe,subset=train,family = "binomial")
+summary(lm_fit)
+lm_fit$deviance
+lm_fit$null.deviance
+
+
+
+
+  glm1 <- glm(Outcome ~., data=exe,subset=train, family="binomial")
+summary(glm1)
+plot(glm1)
+residualPlots(glm1)
+marginalModelPlots(glm1)
+outlierTest(glm1)
+influencePlot(glm1,col="red",id=3)
+```
+
+
+
+ For the diabetes data, estimated coe???cients of the logistic regression model that predicts the probability of diabtes using  8 predictor variables .
+ A one-unit increase in Preganancies is associated with an increase in the log odds of default by 0.111 units.
+ A one-unit increase in Glucose is associated with an increase in the log odds of default by 0.03 units and increase in BMI BY 0.112 units.
+ A one-unit increase in Diabetes pedigree function  is associated with an increase in the log odds of default by 0.84 units and similarly there by decrease in 0.018 units in blood pressure.
+ 
+```{r}
+compute_rmse <- function(y, y_pred) {
+n <- length(y)
+sqrt((1 / n) * sum((y - y_pred)^2))
+#sqrt(mean((y - y_pred)^2))
+}
+
+```
+
+```{r}
+lm_pred <- predict(lm_fit, newdata = exe[-train, ])
+compute_rmse(y_test, lm_pred)
+```
+
+```{r}
+
+lm_step_fit <- step(lm_fit,direction="backward", trace=F)
+lm_step_pred <- predict(lm_step_fit, newdata = exe[-train, ])
+compute_rmse(y_test, lm_step_pred)
+
+```
+```{r}
+
+summary(lm_step_fit)
+
+```
+
+```{r}
+  glm1 <- glm(Outcome ~., data=exe,subset=train, family=binomial)
+summary(glm1)
+plot(glm1)
+residualPlots(glm1)
+marginalModelPlots(glm1)
+outlierTest(glm1)
+influencePlot(glm1,col="red",id=3)
+
+```
+
+
+```{r}
+ glm2 <- glm(Outcome ~ Glucose, data=exe, family=binomial)
+ summary(glm2)
+ 
+ 
+```
+ 
+ 
+ 
+ 
+```{r}
+ confint(glm2)
+
+```
+
+```{r}
+library(ggplot2)
+ggplot(exe, aes(Glucose, Outcome)) + geom_point() + geom_smooth(method = "glm", method.args = list(family = "binomial"), se=F) +xlab("Percent of Glucose") +ylab("Predicted Probability of Outcome")
+```
+logit( ^p(x)) = log (p^(x)/1 ??? p^(x)) = ??^0 + ??^1x = -5.35 + 0.037x
+
+a one unit increase in Glucose is associated with a ??^1 = 0.037 change in the log-odds.
+
+```{r}
+
+library(plot3D)
+library(viridis)
+glm2 <- glm(Outcome ~ Glucose + Pregnancies, data=exe, family=binomial)
+x1vals <- seq(19, 41, len=30)
+x2vals <- seq(-33, 23, len=30)
+grd <- expand.grid(Glucose = x1vals, Pregnancies = x2vals)
+preds <- predict(glm2, grd, type="response")
+persp3D(x1vals, x2vals, matrix(preds, 30, 30), col = viridis(200),
+theta=45, phi= 45, ticktype="detailed", expand=0.7, border="grey",
+xlab = "PctGlucose", ylab = "Pct Pregnacies ", zlab = "ProbOutcome")
+```
+
+```{r}
+
+glm0 <- glm(Outcome ~ 1, data=exe, family=binomial)
+glm1_1 <- glm(Outcome ~ Glucose, data=exe, family=binomial)
+ glm1_2 <- glm(Outcome ~ Pregnancies, data=exe, family=binomial)
+ glm1_3 <- glm(Outcome ~ BMI, data=exe, family=binomial)
+ glm1_4 <- glm(Outcome ~ BloodPressure, data=exe, family=binomial)
+ glm1_5 <- glm(Outcome ~ DiabetesPedigreeFunction, data=exe, family=binomial)
+ glm3 <- glm(Outcome ~ BMI+BloodPressure + Glucose + Pregnancies + DiabetesPedigreeFunction, data=exe, family=binomial)
+ AIC(glm0, glm1_1, glm1_2, glm1_3, glm1_4,glm1_5, glm3)
+ 
+
+
+
+```
+
+
+
+
+
+```{r}
+ Weekly_test <- project[-train, ]
+ Weekly_train <- project[train, ]
+w<-nrow(Weekly_train)
+w
+v<-nrow(Weekly_test)
+v
+ 
+ probs_test <- predict(glm2, newdata = Weekly_test,type="response")
+ preds_test <- rep(0, 274)
+ preds_test[probs_test > 0.5] <- 1
+ head(probs_test)
+
+
+# Confusion matrix (contingency table)
+tb <- table(prediction = preds_test,actual = Weekly_test$Outcome)
+ addmargins(tb)
+
+# Accuracy (Percent Correctly Classified)
+ (160 + 85) / 327
+
+# Sensitivity (Percent "Up" Correctly Classified)
+ 85/ 133
+
+# Specificity (Precent "Down" Correctly Classified)
+160 / 194
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
