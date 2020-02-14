@@ -1,6 +1,4 @@
 
-
-
 ```{r} 
 project <- read.csv(file ="/diabetes.csv",header=TRUE) #update the path
 
@@ -8,7 +6,6 @@ dim(project)
 str(project)
 head(project) 
 ```
-
 
 
 ```{r}
@@ -116,8 +113,7 @@ influencePlot(glm1,col="red",id=3)
  
 ```
  
- 
- 
+
  
 ```{r}
  confint(glm2)
@@ -164,8 +160,6 @@ glm1_1 <- glm(Outcome ~ Glucose, data=exe, family=binomial)
 
 
 
-
-
 ```{r}
  Weekly_test <- project[-train, ]
  Weekly_train <- project[train, ]
@@ -194,32 +188,3 @@ tb <- table(prediction = preds_test,actual = Weekly_test$Outcome)
 160 / 194
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
